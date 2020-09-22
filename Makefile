@@ -1,12 +1,8 @@
-obj-m := lsm.o
-lsm-objs := phdlsm_main.o
+# SPDX-License-Identifier: GPL-2.0
+#
+# Makefile for building the PHD module as part of the kernel tree.
+#
 
-KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+obj-y := phd.o
 
-#PWD       := $(shell pwd)
-
-all:
-	$(MAKE) -C $(KERNELDIR) M=$(CURDIR) modules
-
-clean:
-	$(MAKE) -C $(KERNELDIR) M=$(CURDIR) clean
+phd-y := phdlsm_main.o
