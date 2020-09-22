@@ -50,7 +50,7 @@ int add_ctrl_current_pid(enum phdlsm_type_e type, char *service_name) {
 	}
 
 	for (i = 0; i < PHDLSM_MAX_NUM; i++) {
-		if (fct->pid_record[i].pid == 0)) {
+		if (fct->pid_record[i].pid == 0) {
 			strcpy(fct->pid_record[i].service_name, service_name);
 			fct->pid_record[i].pid = task_pid_nr(current);
 			return 0;
@@ -121,21 +121,21 @@ static int phd_file_ctrl(struct dentry *dentry, struct phdlsm_file_ct_s *fct)
 
 	// 遍历比较
 	for (i = 0; i < PHDLSM_MAX_NUM; i++) {
-		char *file_name = fct->file_name;
+		char *file_name = fct->file_name[i];
 		if (!strncmp(path, file_name, strlen(file_name))) {
 			int j = 0;
 
 			for (j = 0; j < PHDLSM_MAX_NUM; j++) {
-				if (fct->pid_record.pid[j] > 0 && pid == fct->pid_record.pid[j]) {
+				if (fct->pid_record[j].pid > 0 && pid == fct->pid_record[j].pid) {
 					
 					// 授权访问
-					KBOX_LOG(KLOG_DEBUG, "%s allowed to access %s\n", fct->pid_record.service_name, path);
+					KBOX_LOG(KLOG_DEBUG, "%s allowed to access %s\n", fct->pid_record[j].service_name, path);
 					return 0;
 				}
 			}
 
 			// 无权操作
-			KBOX_LOG(KLOG_ERROR, "not allowed to access\n";
+			KBOX_LOG(KLOG_ERROR, "not allowed to access\n");
 			return -EPERM;
 		}
 	}
