@@ -116,7 +116,8 @@ static int phd_file_ctrl(struct dentry *dentry, struct phdlsm_file_ct_s *fct)
 	// 遍历比较
 	for (i = 0; i < PHDLSM_MAX_NUM; i++) {
 		char *file_name = fct->file_name[i];
-		if (!strncmp(path, file_name, strlen(file_name))) {
+		int len = strlen(file_name);
+		if (len > 0 && !strncmp(path, file_name, len)) {
 			int j = 0;
 
 			for (j = 0; j < PHDLSM_MAX_NUM; j++) {
@@ -129,7 +130,8 @@ static int phd_file_ctrl(struct dentry *dentry, struct phdlsm_file_ct_s *fct)
 			}
 
 			// 无权操作
-			KBOX_LOG(KLOG_ERROR, "not allowed to access\n");
+			KBOX_LOG(KLOG_ERROR, "not allowed to access %s\n", file_name);
+			//return 0;
 			return -EPERM;
 		}
 	}
