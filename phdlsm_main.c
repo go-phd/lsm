@@ -1,10 +1,4 @@
-#include <linux/module.h>
-#include <linux/version.h>
-#include <linux/proc_fs.h>
 
-#include <linux/kernel.h>
-#include <linux/slab.h>
-#include <linux/security.h>
 #include <linux/lsm_hooks.h>
 
 #include <phd/phdlsm.h>
@@ -145,7 +139,7 @@ static int phd_file_ctrl(struct dentry *dentry, struct phdlsm_file_ct_s *fct)
 }
 
 
-static int phd_file_open(struct file *filp)
+static int phd_file_open(struct file *filp, const struct cred *cred)
 {
 	return phd_file_ctrl(filp->f_path.dentry, &g_ct.disk);
 }
@@ -156,7 +150,7 @@ static int phd_inode_unlink(struct inode *dir, struct dentry *dentry)
 }
 
 
-static struct security_hook_list pdh_hooks[] __lsm_ro_after_init = {
+static struct security_hook_list pdh_hooks[] = {
 	LSM_HOOK_INIT(file_open, phd_file_open),
 	LSM_HOOK_INIT(inode_unlink, phd_inode_unlink),
 };
@@ -174,7 +168,7 @@ static int __init phdlsm_init(void)
 			KBOX_LOG(KLOG_ERROR, "add_ctrl_file failed! ret = %d\n", ret););
 
 	// register ourselves with the security framework
-	security_add_hooks(pdh_hooks, ARRAY_SIZE(pdh_hooks), "pdh");
+	security_add_hooks(pdh_hooks, ARRAY_SIZE(pdh_hooks));
 	
 	KBOX_LOG(KLOG_DEBUG,  "phd lsm initialized\n");
 
