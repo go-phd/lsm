@@ -7,8 +7,8 @@
 #define PHDLSM_NAME_MAX_LEN PHDLSM_FILE_PATH_MAX_LEN
 
 enum phdlsm_type_e {
-	PHDLSM_DISK = 0,
-	PHDLSM_MAGR = 1,
+	PHDLSM_OPEN = 0,
+	PHDLSM_DEL = 1,
 	PHDLSM_MAX = 2
 };
 
@@ -24,8 +24,8 @@ struct phdlsm_file_ct_s {
 };
 
 struct phdlsm_ct_s {
-	struct phdlsm_file_ct_s disk;
-	struct phdlsm_file_ct_s magr;
+	struct phdlsm_file_ct_s open;
+	struct phdlsm_file_ct_s del;
 };
 
 int add_ctrl_current_pid(enum phdlsm_type_e type, char *service_name);

@@ -25,11 +25,11 @@ int add_ctrl_current_pid(enum phdlsm_type_e type, char *service_name) {
 	}
 
 	switch (type) {
-		case PHDLSM_DISK:
-			fct = &g_ct.disk;
+		case PHDLSM_OPEN:
+			fct = &g_ct.open;
 			break;
-		case PHDLSM_MAGR:
-			fct = &g_ct.magr;
+		case PHDLSM_DEL:
+			fct = &g_ct.del;
 			break;
 		default:
 			printk(KERN_ALERT "type error, type = 0x%x\n", type);
@@ -74,11 +74,11 @@ int add_ctrl_file(enum phdlsm_type_e type, char *filename) {
 	}
 
 	switch (type) {
-		case PHDLSM_DISK:
-			fct = &g_ct.disk;
+		case PHDLSM_OPEN:
+			fct = &g_ct.open;
 			break;
-		case PHDLSM_MAGR:
-			fct = &g_ct.magr;
+		case PHDLSM_DEL:
+			fct = &g_ct.del;
 			break;
 		default:
 			KBOX_LOG(KLOG_ERROR,  "type error, type = 0x%x\n", type);
@@ -105,13 +105,13 @@ static int phd_file_ctrl(struct dentry *dentry, struct phdlsm_file_ct_s *fct)
 	char *path = NULL;
 	int pid = task_pid_nr(current);
 
-	KBOX_LOG(KLOG_DEBUG, "phd_file_ctrl, current pid = 0x%x\n", pid);
-
 	path = dentry_path_raw(dentry, cur_path, PHDLSM_FILE_PATH_MAX_LEN);
 	if (IS_ERR(path)) {
 		KBOX_LOG(KLOG_ERROR, "dentry_path_raw fail, ret =  0x%lx\n", PTR_ERR(path));
 		return 0;
 	}
+
+	//KBOX_LOG(KLOG_DEBUG, "phd_file_ctrl, current pid = 0x%x, path = %s\n", pid, path);
 
 	// 遍历比较
 	for (i = 0; i < PHDLSM_MAX_NUM; i++) {
@@ -120,17 +120,19 @@ static int phd_file_ctrl(struct dentry *dentry, struct phdlsm_file_ct_s *fct)
 		if (len > 0 && !strncmp(path, file_name, len)) {
 			int j = 0;
 
+			//KBOX_LOG(KLOG_DEBUG, "file_name = %s\n", file_name);
+
 			for (j = 0; j < PHDLSM_MAX_NUM; j++) {
 				if (fct->pid_record[j].pid > 0 && pid == fct->pid_record[j].pid) {
 					
 					// 授权访问
-					KBOX_LOG(KLOG_DEBUG, "%s allowed to access %s\n", fct->pid_record[j].service_name, path);
+					printk(KERN_INFO "%s allowed to access %s\n", fct->pid_record[j].service_name, path);
 					return 0;
 				}
 			}
 
 			// 无权操作
-			KBOX_LOG(KLOG_ERROR, "not allowed to access %s\n", file_name);
+			printk(KERN_ALERT "not allowed to access %s\n", file_name);
 			//return 0;
 			return -EPERM;
 		}
@@ -143,12 +145,12 @@ static int phd_file_ctrl(struct dentry *dentry, struct phdlsm_file_ct_s *fct)
 
 static int phd_file_open(struct file *filp, const struct cred *cred)
 {
-	return phd_file_ctrl(filp->f_path.dentry, &g_ct.disk);
+	return phd_file_ctrl(filp->f_path.dentry, &g_ct.open);
 }
 
 static int phd_inode_unlink(struct inode *dir, struct dentry *dentry)
 {
-	return phd_file_ctrl(dentry, &g_ct.magr);
+	return phd_file_ctrl(dentry, &g_ct.del);
 }
 
 
@@ -165,14 +167,14 @@ static int __init phdlsm_init(void)
 	memset(&g_ct, 0, sizeof(struct phdlsm_ct_s));
 
 	// /dev/sda 块设备文件默认不允许公共访问
-	ret = add_ctrl_file(PHDLSM_DISK, "/dev/sda");
+	ret = add_ctrl_file(PHDLSM_OPEN, "/sda");
 	RETURN_VAL_DO_INFO_IF_FAIL(!ret, ret,
 			KBOX_LOG(KLOG_ERROR, "add_ctrl_file failed! ret = %d\n", ret););
 
 	// register ourselves with the security framework
 	security_add_hooks(pdh_hooks, ARRAY_SIZE(pdh_hooks));
 	
-	KBOX_LOG(KLOG_DEBUG,  "phd lsm initialized\n");
+	printk(KERN_INFO "PHD LSM initialized\n");
 
 	return 0;
 }
