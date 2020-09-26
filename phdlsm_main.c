@@ -56,17 +56,17 @@ int add_ctrl_current_pid(enum phdlsm_type_e type, char *service_name) {
 }
 EXPORT_SYMBOL(add_ctrl_current_pid);
 
-int add_ctrl_file(enum phdlsm_type_e type, char *filename) {
+int add_ctrl_file(enum phdlsm_type_e type, char *file_name) {
 	int i = 0;
 	size_t real_len = 0;
 	struct phdlsm_file_ct_s *fct = NULL;
 
-	if (!filename) {
+	if (!file_name) {
 		KBOX_LOG(KLOG_ERROR,  "filename is NULL\n");
 		return -EINVAL;
 	}
 
-	real_len = strlen(filename);
+	real_len = strlen(file_name);
 
 	if (real_len == 0 || real_len >= PHDLSM_FILE_PATH_MAX_LEN) {
 		KBOX_LOG(KLOG_ERROR,  "filename length is invalid\n");
@@ -86,8 +86,14 @@ int add_ctrl_file(enum phdlsm_type_e type, char *filename) {
 	}
 
 	for (i = 0; i < PHDLSM_MAX_NUM; i++) {
+		if (!strcmp(file_name, fct->file_name)) {
+			return 0;
+		}
+	}
+
+	for (i = 0; i < PHDLSM_MAX_NUM; i++) {
 		if (strlen(fct->file_name[i]) == 0) {
-			strcpy(fct->file_name[i], filename);
+			strcpy(fct->file_name[i], file_name);
 			return 0;
 		}
 	}
